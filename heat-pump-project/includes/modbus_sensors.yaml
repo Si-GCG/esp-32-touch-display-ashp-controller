@@ -1,0 +1,331 @@
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Return Water Temperature"
+  id: return_temperature
+  register_type: read
+  address: 0
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+
+# Compressor Operating Frequency → Frequency gauge
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Compressor Operating Frequency"
+  id: compressor_freq_hz
+  register_type: read
+  address: 1
+  unit_of_measurement: "Hz"
+  state_class: measurement
+  accuracy_decimals: 0
+  icon: "mdi:sine-wave"
+  on_value:
+    - lvgl.indicator.update:
+        id: freq_needle
+        value: !lambda |-
+          // Gauge range is 0..90 on the meter scale; clamp safely
+          float v = x;
+          if (v < 0) v = 0;
+          if (v > 90) v = 90;
+          return v;
+    - lvgl.label.update:
+        id: freq_text
+        text:
+          format: "%.0f Hz"
+          args: [ 'x' ]
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Discharge Temperature"
+  register_type: read
+  address: 2
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+
+# Current Consumption → Power gauge (kW)
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Current Consumption"
+  id: current_consumption_w
+  register_type: read
+  address: 3
+  unit_of_measurement: "W"
+  device_class: power
+  state_class: measurement
+  accuracy_decimals: 0
+  filters:
+    - multiply: 100.0
+  on_value:
+    # Update the power needle (kW * 10 for the 0..60 scale if your gauge uses 6 kW max)
+    - lvgl.indicator.update:
+        id: power_needle
+        value: !lambda |-
+          float kw = x / 1000.0f;
+          float scaled = kw * 10.0f;
+          if (scaled < 0) scaled = 0;
+          if (scaled > 60) scaled = 60;
+          return scaled;
+    # Update the power text as kW
+    - lvgl.label.update:
+        id: power_text
+        text: !lambda |-
+          float kw = x / 1000.0;
+          char buffer[10];
+          sprintf(buffer, "%.1f kW", kw);
+          return buffer;
+    
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Fan Speed"
+  register_type: read
+  address: 4
+  unit_of_measurement: "rpm"
+  state_class: measurement
+  accuracy_decimals: 0
+  icon: "mdi:fan"
+  filters:
+    - multiply: 10.0
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Defrost Temperature"
+  register_type: read
+  address: 5
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+
+# Outdoor Air Temperature → right-side Outdoor Temp label
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Outdoor Air Temperature"
+  id: outdoor_air_temperature
+  register_type: read
+  address: 6
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+  on_value:
+    - lvgl.label.update:
+        id: outdoor_temp_value
+        text:
+          format: "%.1f°C"
+          args: [ 'x' ]
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Water Pump Speed"
+  register_type: read
+  address: 7
+  unit_of_measurement: "rpm"
+  state_class: measurement
+  accuracy_decimals: 0
+  icon: "mdi:pump"
+  filters:
+    - multiply: 100.0
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Suction Temperature"
+  register_type: read
+  address: 8
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+
+# Outgoing Water Temperature → right-side Flow Temp label
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Outgoing Water Temperature"
+  id: flow_temperature
+  register_type: read
+  address: 9
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+  on_value:
+    - lvgl.label.update:
+        id: flow_temp_value
+        text:
+          format: "%.1f°C"
+          args: [ 'x' ]
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Selected Operating Mode"
+  register_type: read
+  address: 10
+  accuracy_decimals: 0
+  icon: "mdi:cog"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Buffer Tank Temperature"
+  register_type: read
+  address: 11
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 0.1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Humidity Sensor"
+  register_type: read
+  address: 12
+  unit_of_measurement: "%"
+  device_class: humidity
+  state_class: measurement
+  accuracy_decimals: 0
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "DHW Operating Mode"
+  register_type: read
+  address: 13
+  accuracy_decimals: 0
+  icon: "mdi:water-boiler"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "DHW Legionella Cycle Day"
+  register_type: read
+  address: 14
+  accuracy_decimals: 0
+  icon: "mdi:calendar"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "DHW Water Temperature"
+  id: dhw_temperature
+  register_type: read
+  address: 16
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 0.1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Plate Heat Exchanger Temperature"
+  register_type: read
+  address: 32
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 1.0
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Indoor Master Temperature Actual"
+  register_type: read
+  address: 33
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_class: measurement
+  accuracy_decimals: 1
+  filters:
+    - multiply: 0.1
+
+
+
+
+
+
+
+
+
+
+# - platform: wifi_signal
+#   name: "WiFi RSSI"
+#   id: id_wifi_rssi
+#   update_interval: 30s
+#   entity_category: diagnostic
+#   on_value:
+#     then:
+#       - lvgl.label.update:
+#           id: id_lv_lab_wifi_status
+#           text_color: !lambda |-
+#             if (id(id_wifi_rssi).state < 0) {
+#               return lv_color_hex(0x00FF00);
+#             }
+#             return lv_color_hex(0x333333);
+#           text: !lambda |-
+#             if (id(id_wifi_rssi).state <= -80) {
+#               return "${wifi_25}";
+#             } else if (id(id_wifi_rssi).state > -80 && id(id_wifi_rssi).state <= -70) {
+#               return "${wifi_50}";
+#             } else if (id(id_wifi_rssi).state > -70 && id(id_wifi_rssi).state <= -60) {
+#               return "${wifi_75}";
+#             } else if (id(id_wifi_rssi).state > -60) {
+#               return "${wifi_100}";
+#             }
+#             return "${wifi_100}";
+#       - lvgl.label.update:
+#           id: id_lv_lab_debug_network_info_rssi
+#           text:
+#             format: "RSSI: %.1fdBm"
+#             args: [x]
+
+# - platform: debug
+#   free:
+#     name: "Heap Free"
+#     id: id_sensor_debug_heap_free
+#     internal: True
+#     on_value:
+#       then:
+#         - lvgl.label.update:
+#             id: id_lv_lab_debug_heap_free
+#             text:
+#               format: "Heap free: %.3fkB"
+#               args: [x / 1024]
+
+#   loop_time:
+#     name: "Loop Time"
+#     id: id_sensor_debug_loop_time
+#     internal: True
+#     on_value:
+#       then:
+#         - lvgl.label.update:
+#             id: id_lv_lab_debug_loop_time
+#             text:
+#               format: "Loop time: %.0fms"
+#               args: [x]
+
+  # psram:
+  #   name: "Free PSRAM"
+  #   id: id_sensor_debug_free_psram
+  #   internal: True
+  #   on_value:
+  #     then:
+  #       - lvgl.label.update:
+  #           id: id_lv_lab_debug_psram_free
+  #           text:
+  #             format: "PSRAM free: %.3fkB"
+  #             args: [x / 1024]

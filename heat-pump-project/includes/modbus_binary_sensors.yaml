@@ -1,0 +1,181 @@
+# includes/modbus_binary_sensors.yaml
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Weather Compensation Status"
+  register_type: coil
+  address: 2
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Weather Compensation Zone 2 Status"
+  register_type: coil
+  address: 3
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Cooling Weather Compensation Status"
+  register_type: coil
+  address: 5
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Anti-legionella Function Status"
+  register_type: coil
+  address: 6
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "HP Unit Status"
+  register_type: coil
+  address: 7
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Frost Protection Room Temperature Status"
+  register_type: coil
+  address: 8
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Frost Protection Outdoor Temperature Status"
+  register_type: coil
+  address: 9
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Frost Protection Outgoing Water Status"
+  register_type: coil
+  address: 10
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "DHW Storage Frost Protection Status"
+  register_type: coil
+  address: 11
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Secondary Circuit Frost Protection Status"
+  register_type: coil
+  address: 12
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Room Humidity Compensation Status"
+  register_type: coil
+  address: 13
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Backup Heaters Conditions Status"
+  register_type: coil
+  address: 14
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "EHS Heaters Conditions Status"
+  register_type: coil
+  address: 15
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 1-2-3 Remote Controller Status"
+  register_type: coil
+  address: 16
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 4-5-6 3way Mixing Valve Status"
+  register_type: coil
+  address: 17
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 7-8 DHW Tank Probe Status"
+  register_type: coil
+  address: 18
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 9-10 Outdoor Air Probe Status"
+  register_type: coil
+  address: 19
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 11-12 Buffer Tank Probe Status"
+  register_type: coil
+  address: 20
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 13-14 Mix Water Probe Status"
+  register_type: coil
+  address: 21
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 15-16-32 RS485 Modbus Status"
+  register_type: coil
+  address: 22
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 17-18 Humidity Sensor Status"
+  register_type: coil
+  address: 23
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 19-18 DHW Remote Contact Status"
+  register_type: coil
+  address: 24
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 22-23 Dual Set Point Status"
+  register_type: coil
+  address: 25
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 26-27 Flow Switch Status"
+  register_type: coil
+  address: 26
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 28-29 Night Mode Status"
+  register_type: coil
+  address: 27
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 30-31 Low Tariff Mode Status"
+  register_type: coil
+  address: 28
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 41-42 EHS Status"
+  register_type: coil
+  address: 29
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 43-44 Heat/Cool Mode Output Status"
+  register_type: coil
+  address: 30
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 45 Dehumidifier Status"
+  register_type: coil
+  address: 31
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 46 DHW/Backup Heater Status"
+  register_type: coil
+  address: 32

@@ -1,0 +1,229 @@
+# includes/modbus_switches.yaml
+
+# includes/modbus_switches.yaml
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Weather Compensation"
+  id: weather_comp
+  register_type: coil
+  address: 2
+  bitmask: 1
+  on_state:
+    - lvgl.widget.update:
+        id: lv_sw_weather_comp  # match the Control Page widget id
+        state:
+          checked: !lambda return id(weather_comp).state;
+
+            
+            
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Weather Compensation Zone 2"
+  register_type: coil
+  address: 3
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Cooling Weather Compensation"
+  register_type: coil
+  address: 5
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Anti-legionella Function"
+  register_type: coil
+  address: 6
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "HP Unit ON/OFF"
+  register_type: coil
+  address: 7
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Frost Protection Room Temperature"
+  register_type: coil
+  address: 8
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Frost Protection Outdoor Temperature"
+  register_type: coil
+  address: 9
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Frost Protection Outgoing Water"
+  register_type: coil
+  address: 10
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "DHW Storage Frost Protection"
+  register_type: coil
+  address: 11
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Secondary Circuit Frost Protection"
+  register_type: coil
+  address: 12
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Room Humidity Compensation"
+  register_type: coil
+  address: 13
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Backup Heaters Conditions"
+  register_type: coil
+  address: 14
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "EHS Heaters Conditions"
+  register_type: coil
+  address: 15
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 1-2-3 Remote Controller"
+  register_type: coil
+  address: 16
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 4-5-6 3way Mixing Valve"
+  register_type: coil
+  address: 17
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 7-8 DHW Tank Probe"
+  register_type: coil
+  address: 18
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 9-10 Outdoor Air Probe"
+  register_type: coil
+  address: 19
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 11-12 Buffer Tank Probe"
+  register_type: coil
+  address: 20
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 13-14 Mix Water Probe"
+  register_type: coil
+  address: 21
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 15-16-32 RS485 Modbus"
+  register_type: coil
+  address: 22
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 17-18 Humidity Sensor"
+  register_type: coil
+  address: 23
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 19-18 DHW Remote Contact"
+  register_type: coil
+  address: 24
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 22-23 Dual Set Point"
+  register_type: coil
+  address: 25
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 26-27 Flow Switch"
+  register_type: coil
+  address: 26
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 28-29 Night Mode"
+  register_type: coil
+  address: 27
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 30-31 Low Tariff Mode"
+  register_type: coil
+  address: 28
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 41-42 EHS"
+  register_type: coil
+  address: 29
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 43-44 Heat/Cool Mode Output"
+  register_type: coil
+  address: 30
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 45 Dehumidifier"
+  register_type: coil
+  address: 31
+  bitmask: 1
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Terminal 46 DHW/Backup Heater"
+  register_type: coil
+  address: 32
+  bitmask: 1
+
+# - platform: gpio
+#   name: "Backlight Switch"
+#   id: display_backlight
+#   pin: 
+#     ch422g: io_ex
+#     number: 2
+#   restore_mode: ALWAYS_ON
+#   internal: False

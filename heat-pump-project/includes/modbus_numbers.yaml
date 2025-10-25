@@ -1,0 +1,270 @@
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Fixed Flow Temperature"
+  id: set_fixed_flow_temp
+  register_type: holding
+  address: 2
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 20
+  max_value: 60
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer"
+
+# Set Max Flow Temperature → Max dial
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Max Flow Temperature"
+  id: set_max_flow_temp
+  register_type: holding
+  address: 3
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 25
+  max_value: 65
+  step: 0.5
+  multiply: 10  # write scaling
+  mode: box
+  icon: "mdi:thermometer-chevron-up"
+  on_value:
+    - lvgl.arc.update:
+        id: max_temp_dial
+        value: !lambda |-
+          // x is already °C from ESPHome (read side); clamp to dial min/max
+          float v = x;
+          if (v < 20) v = 20;
+          if (v > 65) v = 65;
+          return v;
+    - lvgl.label.update:
+        id: max_temp_dial_label
+        text:
+          format: "%.0f°C"
+          args: [ 'x' ]
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Min Flow Temperature"
+  id: set_min_flow_temp
+  register_type: holding
+  address: 4
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 15
+  max_value: 40
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-chevron-down"
+  on_value:
+    - lvgl.arc.update:
+        id: min_temp_dial
+        value: !lambda |-
+          float v = x;
+          if (v < 20) v = 20;   // keep dial’s visual min consistent (your dial min is 20)
+          if (v > 65) v = 65;   // dial max is 65
+          return v;
+    - lvgl.label.update:
+        id: min_temp_dial_label
+        text:
+          format: "%.0f°C"
+          args: [ 'x' ]
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Min Outdoor Air Temperature"
+  register_type: holding
+  address: 5
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: -20
+  max_value: 10
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-minus"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Max Outdoor Air Temperature"
+  register_type: holding
+  address: 6
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 10
+  max_value: 35
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-plus"
+
+# Zone 2 Settings
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Fixed Flow Temperature Zone 2"
+  register_type: holding
+  address: 7
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 20
+  max_value: 60
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Max Flow Temperature Zone 2"
+  register_type: holding
+  address: 8
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 25
+  max_value: 65
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-chevron-up"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Min Flow Temperature Zone 2"
+  register_type: holding
+  address: 9
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 15
+  max_value: 40
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-chevron-down"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Min Outdoor Air Temperature Zone 2"
+  register_type: holding
+  address: 10
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: -20
+  max_value: 10
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-minus"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Max Outdoor Air Temperature Zone 2"
+  register_type: holding
+  address: 11
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 10
+  max_value: 35
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:thermometer-plus"
+
+# Hysteresis Settings
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Hysteresis Water Setpoint"
+  register_type: holding
+  address: 21
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 1
+  max_value: 10
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:delta"
+
+# DHW Settings
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set DHW Comfort Temperature"
+  register_type: holding
+  address: 28
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 40
+  max_value: 65
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:water-thermometer"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set DHW Economy Temperature"
+  register_type: holding
+  address: 29
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 35
+  max_value: 60
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:water-thermometer-outline"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set DHW Setpoint Hysteresis"
+  register_type: holding
+  address: 30
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 1
+  max_value: 10
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:delta"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set DHW Over Boost Setpoint"
+  register_type: holding
+  address: 31
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 50
+  max_value: 70
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:water-boiler"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Anti Legionella Setpoint"
+  register_type: holding
+  address: 36
+  unit_of_measurement: "°C"
+  device_class: temperature
+  min_value: 55
+  max_value: 70
+  step: 0.5
+  multiply: 10
+  mode: box
+  icon: "mdi:biohazard"
+
+- platform: modbus_controller
+  modbus_controller_id: aerona3
+  name: "Set Max Frequency Night Mode"
+  register_type: holding
+  address: 37
+  unit_of_measurement: "%"
+  min_value: 0
+  max_value: 100
+  step: 1
+  multiply: 10
+  mode: box
+  icon: "mdi:weather-night"
