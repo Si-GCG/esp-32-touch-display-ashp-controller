@@ -1,3 +1,2 @@
 Printable design file has been modified from the [original design](https://www.thingiverse.com/thing:6701545) to remove the cut-out hole at the bottom. You will need to make your own hole to pass wires through.
-
-Also included is the m3d source design file to be used with Kompas 3D student edition. Regular edition of the software cannot open this project. Student edition seems to only be in Russian language. I couldn't find a way to switch language to something else.
+The no hole version is from https://github.com/bennydiamond/esphome_lvgl_hmi_garage Huge thanks to Benny Diamond for giving me a greeat start point with this project.
