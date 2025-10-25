@@ -86,8 +86,10 @@ Build instructions
    Edit the secrets.yaml to include your systems details
    Once you are happy with your build run the following commands from your project directory (where your ASHP_ESP32-S3_display.yaml and secrets.yaml files are)
    
-   ```esphome compile ASHP_ESP32-S3_display.yaml
-   esphome run ASHP_ESP32-S3_display.yaml```
+   ```
+   esphome compile ASHP_ESP32-S3_display.yaml
+   esphome run ASHP_ESP32-S3_display.yaml
+   ```
 
 
 Example PlatformIO steps (high level)
