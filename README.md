@@ -211,6 +211,7 @@ Acknowledgements
 - Waveshare for the hardware
 - LVGL community for GUI components
 - Home Assistant community for integration patterns
+- Benny Diamond and his awesome project - https://github.com/bennydiamond/esphome_lvgl_hmi_garage
 
 Contact / author
 - Si-GCG (project owner)
