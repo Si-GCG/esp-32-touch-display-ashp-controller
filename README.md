@@ -75,16 +75,20 @@ Software
 Architecture & components
 - Firmware: ESP32-based firmware using:
   - UI: LVGL (recommended) or a lightweight custom renderer
+  - SDL: allows you to quickly iterate using UI changes without having to flash the actual device. Navigate your terminal to the folder with your sdl_test.yaml file and make changes to that file then save then run the following command - esphome run sdl_yaml 
   - Connectivity: Wi‑Fi + MQTT client OR ESPHome
   - Control logic: local state machine to handle modes, setpoints, safety and remote commands
 - Home Assistant: configure entities (climate, switches, sensors) using MQTT or ESPHome integration
 
-Build options
-Choose one of the following stacks:
-1. ESPHome (if you prefer YAML driven firmware and tight HA integration — limited UI options, this is the path I took)
-2. ESP-IDF (for advanced low-level control)
-3. Arduino-ESP32 (simpler environment; many libraries are available)
-4. PlatformIO (recommended for simple cross-platform build & upload)
+Build instructions
+
+1. ESPHome
+   Edit the secrets.yaml to include your systems details
+   Once you are happy with your build run the following commands from your project directory (where your ASHP_ESP32-S3_display.yaml and secrets.yaml files are)
+   
+   '''esphome compile ASHP_ESP32-S3_display.yaml
+   esphome run ASHP_ESP32-S3_display.yaml'''
+
 
 Example PlatformIO steps (high level)
 - Install PlatformIO (VS Code extension or CLI)
