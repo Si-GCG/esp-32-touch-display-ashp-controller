@@ -16,7 +16,7 @@ Table of contents
   - Build options
   - Configuration (Wi‑Fi, MQTT, ESPHome)
 - Home Assistant integration
-  - MQTT topics & payloads
+  - MQTT topics & payloads (Coming soon)
   - Example Home Assistant YAML
 - UI design & customization
 - Flashing & OTA
@@ -43,15 +43,9 @@ Hardware
 
 Recommended parts
 - Waveshare ESP32-S3 7-inch capacitive touchscreen display (the ESP32-S3 model)
-- Stable 5V power supply (see power considerations below)
-- Level shifters (if you interface 3.3V/5V peripherals)
+- Stable 5V power supply USB C
 - JST / Dupont wires and appropriate connectors
 - Optional enclosure and mounting hardware
-
-Power considerations
-- The Waveshare touchscreen and the ESP32-S3 board can draw significant current (especially backlight). Use a capable 5V supply (e.g., 3A+) or the recommended supply from the display vendor.
-- Ensure a common ground between the display and any external devices.
-- If powering relays or external high-current devices, use separate supplies and opto-isolate or use proper transistors/SSR/relays with flyback protection.
 
 Wiring & pin mapping (example / placeholders)
 The display typically exposes:
@@ -87,10 +81,10 @@ Architecture & components
 
 Build options
 Choose one of the following stacks:
-1. PlatformIO (recommended for simple cross-platform build & upload)
+1. ESPHome (if you prefer YAML driven firmware and tight HA integration — limited UI options, this is the path I took)
 2. ESP-IDF (for advanced low-level control)
 3. Arduino-ESP32 (simpler environment; many libraries are available)
-4. ESPHome (if you prefer YAML driven firmware and tight HA integration — limited UI options)
+4. PlatformIO (recommended for simple cross-platform build & upload)
 
 Example PlatformIO steps (high level)
 - Install PlatformIO (VS Code extension or CLI)
@@ -102,7 +96,7 @@ Example PlatformIO steps (high level)
 - For esptool CLI:
   - python -m esptool --chip esp32s3 write_flash -z 0x1000 firmware.bin
 
-Configuration (Wi‑Fi, MQTT, ESPHome)
+Configuration (Wi‑Fi, MQTT, ESPHome) (I am still working on MQTT)
 - Wi‑Fi: SSID and password stored in secure config (ideally prompt on first boot or use provisioning).
 - MQTT: Broker address, username, password, base topic
 - ESPHome: If using ESPHome, implement display and custom components through its YAML; note that complex LVGL UIs may not be supported out-of-the-box by ESPHome.
@@ -155,8 +149,7 @@ UI design & customization
 - The UI is implemented using LVGL (recommended) or a chosen GUI framework.
 - Suggested screens:
   - Home: current mode, indoor temp, setpoint, quick controls (power, mode)
-  - Schedule: weekly schedule editor
-  - Settings: Wi‑Fi, MQTT, calibration, restore defaults
+  - Settings: Wi‑Fi, MQTT (coming soon)
   - Diagnostics: logs, error codes, firmware version
 - Assets: icons, fonts and translations are stored in /assets (TBD)
 - The UI is modular — customize layouts, color themes, and widgets.
@@ -190,22 +183,16 @@ Contributing
 - Please document any hardware-specific pinouts and wiring you test
 
 Repository structure (suggested)
-- /firmware — firmware source (PlatformIO / ESP-IDF / Arduino)
-- /docs — hardware diagrams, vendor datasheets, pinouts
-- /ui — LVGL assets, icons, fonts
-- /examples — example Home Assistant configs, MQTT samples
-- /hardware — photos, enclosure files (STL), wiring
+- /includes — add any modbus registers dependent on type (Sensors, Switches , Binary Sensors, Input Numbers etc)
+- /fonts— hardware diagrams, vendor datasheets, pinouts
+- /images — any images you want to include in your display
+
 
 What I have included
 - A complete README template covering project goals, components, guidance for building, wiring, and Home Assistant integration with sample MQTT topics and Home Assistant YAML.
 
-What you can do next
-- Provide specific Waveshare model details (link or part number) and any exact pinouts or wiring you've already tested; I will update the wiring table and driver recommendations.
-- Tell me which firmware stack you prefer (PlatformIO + Arduino-ESP32, ESP-IDF, or ESPHome) and I will add tailored build, library, and example config steps.
-- If you want, I can generate a ready-to-flash PlatformIO example environment or an ESPHome YAML starting point.
-
 License
-This repository defaults to the MIT license. Change as needed.
+This repository defaults to the GPL 2.0 license. 
 
 Acknowledgements
 - Waveshare for the hardware
