@@ -21,6 +21,7 @@ Table of contents
 - UI design & customization
 - Flashing & OTA
 - Troubleshooting
+- Resources
 - Contributing
 - License
 
@@ -91,21 +92,10 @@ Build instructions
    esphome run ASHP_ESP32-S3_display.yaml
    ```
 
-
-Example PlatformIO steps (high level)
-- Install PlatformIO (VS Code extension or CLI)
-- Configure environment in platformio.ini to target ESP32-S3
-- Run build:
-  - pio run
-- Upload via USB:
-  - pio run -t upload
-- For esptool CLI:
-  - python -m esptool --chip esp32s3 write_flash -z 0x1000 firmware.bin
-
 Configuration (Wi‑Fi, MQTT, ESPHome) (I am still working on MQTT)
 - Wi‑Fi: SSID and password stored in secure config (ideally prompt on first boot or use provisioning).
 - MQTT: Broker address, username, password, base topic
-- ESPHome: If using ESPHome, implement display and custom components through its YAML; note that complex LVGL UIs may not be supported out-of-the-box by ESPHome.
+- ESPHome: If using ESPHome, implement display and custom components through its YAML.
 
 Home Assistant integration
 
@@ -176,6 +166,13 @@ Troubleshooting
 - Wi‑Fi connection issues: verify credentials, AP signal, and power stability.
 - MQTT messages not received: check broker settings, topic names and credentials. Use mosquitto_sub or MQTT Explorer to debug.
 - Heat pump control: ensure any wiring to the heat pump is done only per the vendor's instructions and local safety codes. Use optoisolators or proper relays when switching mains.
+
+Resuorces
+https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch/esp_lcd_touch_gt911
+
+https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-7
+
+https://docs.lvgl.io/8.3/examples.html#
 
 Safety & regulatory notes
 - This project interfaces with HVAC equipment. Incorrect wiring or software bugs can cause equipment damage or unsafe operation.
