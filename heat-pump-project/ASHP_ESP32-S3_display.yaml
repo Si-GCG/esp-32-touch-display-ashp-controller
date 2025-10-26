@@ -10,7 +10,10 @@ esphome:
     board_build.esp-idf.memory_type: qio_opi
     board_upload.maximum_ram_size: 524288
     board_build.flash_size: 8MB
-
+  on_boot:
+    priority: -100  # Run after everything else is initialized
+    then:
+      - script.execute: wake_backlight
 esp32:
   board: esp32-s3-devkitc-1
   variant: esp32s3
@@ -102,6 +105,49 @@ i2c:
   scan: false
   id: bus_a
 
+light:
+  - platform: binary
+    name: "Display Backlight"
+    id: display_backlight
+    output: backlight_gpio
+    restore_mode: ALWAYS_ON
+
+globals:
+  - id: backlight_active
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+script:
+  - id: backlight_timeout
+    then:
+      - if:
+          condition:
+            lambda: 'return id(backlight_active);'
+          then:
+            - lambda: |-
+                ESP_LOGI("backlight", "Display timeout - turning off backlight");
+                id(backlight_active) = false;
+            - light.turn_off: display_backlight
+
+  - id: wake_backlight
+    mode: restart  # Restart if already running (resets timer)
+    then:
+      # Turn on backlight if it was off
+      - if:
+          condition:
+            lambda: 'return !id(backlight_active);'
+          then:
+            - lambda: |-
+                ESP_LOGI("backlight", "Waking display from touch");
+                id(backlight_active) = true;
+            - light.turn_on: display_backlight
+      
+      # Wait 5 minutes, then timeout
+      - delay: 300s
+      - script.execute: backlight_timeout
+
+
 safe_mode:
 
 button:
@@ -109,6 +155,15 @@ button:
     name: "Device Restart (Safe mode)"
     id: id_button_device_restart_safe_mode
     icon: mdi:restart-alert
+
+output:
+  - platform: gpio
+    id: backlight_gpio
+    pin:
+      ch422g: io_ex
+      number: 0
+      mode: output
+      inverted: false
 
 # Touchscreen (hardware)
 touchscreen:
@@ -119,7 +174,8 @@ touchscreen:
   reset_pin:
     ch422g: io_ex
     number: 1
-
+  on_touch:
+    - script.execute: wake_backlight
 # Display (hardware)
 display:
   - platform: rpi_dpi_rgb
@@ -169,8 +225,14 @@ modbus:
   id: modbus1
   uart_id: mod_bus
 
+modbus_controller:
+  id: aerona3
+  address: 1
+  modbus_id: modbus1
+  update_interval: 10s
+  command_throttle: 200ms
+
 # Bring in your Modbus controller and register maps (adjust paths)
-modbus_controller: !include includes/modbus_controller.yaml
 binary_sensor: !include includes/modbus_binary_sensors.yaml
 switch: !include includes/modbus_switches.yaml
 number: !include includes/modbus_numbers.yaml
@@ -308,6 +370,7 @@ lvgl:
           text_color: 0xFFFFFF
 
   pages:
+
     - id: home_page
       widgets:
         - obj:
@@ -315,7 +378,7 @@ lvgl:
             height: 480
             bg_color: 0x464B55
             border_width: 0
-            pad_all: 8
+            pad_all: 0                 # small global inset to avoid edge seams
             widgets:
               - obj:
                   align: TOP_MID
@@ -326,6 +389,8 @@ lvgl:
                         align: CENTER
                         text_align: CENTER
                         text_color: 0xFFFFFF
+
+              # Image placed directly, minimal inset, no vertical offset
               - image:
                   id: aerona_image
                   src: aerona_heat_pump_img
@@ -335,34 +400,39 @@ lvgl:
                   width: 340
                   height: 440
                   border_width: 0
+
+              # Branding block on the right, independent of the image
               - obj:
                   align: RIGHT_MID
-                  x: -10
+                  x: 0
                   y: 0
                   width: SIZE_CONTENT
                   height: SIZE_CONTENT
                   bg_opa: TRANSP
                   border_opa: TRANSP
-                  pad_all: 8
+                  pad_all: 6
                   widgets:
                     - label:
                         id: heatalizer_label
                         text: "Heatalizer"
                         align: TOP_LEFT
-                        x: 20
+                        x: 0
                         y: 0
                         text_font: excelate_24
                         text_color: 0xFFFFFF
+
                     - label:
                         id: heatalizer_3000_label
                         text: "3000"
                         align_to:
                           id: heatalizer_label
-                          align: OUT_RIGHT_MID
-                          x: -18
-                          y: 20
+                          align: OUT_RIGHT_MID   # keep to the right of the word
+                          x: -20                   # modest spacing
+                          y: 20                    # slight drop for a badge feel
                         text_font: excelate_18
                         text_color: 0xFFC107
+
+
 
     - id: current_operation_page
       widgets:
@@ -371,8 +441,9 @@ lvgl:
             height: 480
             bg_color: 0x464B55
             border_width: 0
-            pad_all: 10
+            pad_all: 0
             widgets:
+              # Title bar
               - obj:
                   align: TOP_MID
                   styles: header_footer
@@ -382,31 +453,98 @@ lvgl:
                         align: CENTER
                         text_align: CENTER
                         text_color: 0xFFFFFF
-
+              # Left-side container with two aligned gauges (Power kW + Compressor Hz)
               - obj:
-                  id: op_left_container
+                  id: temp_container1
                   align: LEFT_MID
-                  x: 10
+                  x: 0
                   y: 0
-                  width: 280
+                  width: 200
                   height: 400
                   bg_color: 0x535966
                   border_width: 0
                   pad_all: 10
                   widgets:
                     - label:
+                        text: "Flow Temp"
+                        align: TOP_MID
+                        y: 20
+                        text_font: montserrat_16
+                        text_color: 0xFFFFFF
+                    - label:
+                        id: flow_temp_value
+                        text: "--°C"
+                        align: TOP_MID
+                        y: 45
+                        text_font: montserrat_24
+                        text_color: 0x33A1FF
+                    - label:
+                        text: "Return Temp"
+                        align: TOP_MID
+                        y: 80
+                        text_font: montserrat_16
+                        text_color: 0xFFFFFF  
+                    - label:
+                        id: return_temp_value
+                        text: "--°C"
+                        align: TOP_MID
+                        y: 115
+                        text_font: montserrat_24
+                        text_color: 0x33A1FF     
+                    - label:
+                        text: "Outdoor Temp"
+                        align: TOP_MID
+                        y: 150
+                        text_font: montserrat_16
+                        text_color: 0xFFFFFF
+                    - label:
+                        id: outdoor_temp_value
+                        text: "--°C"
+                        align: TOP_MID
+                        y: 185
+                        text_font: montserrat_24
+                        text_color: 0xFF9933
+                    - label:
+                        text: "Max Flow Temp"
+                        align: TOP_MID
+                        y: 220
+                        text_font: montserrat_16
+                        text_color: 0xFFFFFF
+                    - label:
+                        id: set_max_flow_temp_value
+                        text: "--°C"
+                        align: TOP_MID
+                        y: 255
+                        text_font: montserrat_24
+                        text_color: 0x33A1FF 
+              - obj:
+                  id: op_center_container
+                  align: CENTER
+                  x: 10
+                  y: 0
+                  width: 280
+                  height: 400            # fits between 30px header and 30px footer with some margin
+                  bg_color: 0x535966
+                  border_width: 0
+                  pad_all: 10            # smaller padding to maximize inner space
+                  widgets:
+                    # ---------- Power gauge (0..6 kW) ----------
+                    - label:
                         text: "Power"
                         align: TOP_MID
+                        x: 0
                         y: 0
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
+
                     - obj:
                         id: power_gauge_box
                         align: TOP_MID
+                        x: 0
                         y: 22
                         width: 240
                         height: 160
-                        bg_color: 0x2B2F36
+                        bg_color: 0x2B2F36         # darker box for contrast
                         border_width: 0
                         pad_all: 6
                         widgets:
@@ -418,6 +556,7 @@ lvgl:
                               bg_opa: TRANSP
                               align: CENTER
                               scales:
+                                # Background arcs for top half, 10x resolution (0..60 = 0..6 kW)
                                 - range_from: 0
                                   range_to: 60
                                   angle_range: 180
@@ -426,19 +565,20 @@ lvgl:
                                     count: 0
                                   indicators:
                                     - arc:
-                                        color: 0x2468B3
-                                        r_mod: 12
-                                        width: 22
+                                        color: 0x2468B3     # richer blue low 
+                                        r_mod: 12           # slightly farther from center to avoid overlap seams
+                                        width: 22           # narrower arc bands
                                         start_value: 0
-                                        end_value: 30
+                                        end_value: 45
                                     - arc:
-                                        color: 0xE0621A
+                                        color: 0xE0621A     # richer orange high
                                         r_mod: 12
                                         width: 22
-                                        start_value: 30
-                                        end_value: 60
+                                        start_value: 45
+                                        end_value: 90
+                                # Needle scale (no ticks)
                                 - range_from: 0
-                                  range_to: 60
+                                  range_to: 90
                                   angle_range: 180
                                   rotation: 180
                                   ticks:
@@ -447,17 +587,20 @@ lvgl:
                                     - line:
                                         id: power_needle
                                         width: 5
-                                        color: 0xFFC107
-                                        r_mod: 8
+                                        color: 0xFFC107    # warm amber needle (slightly brighter than label)
+                                        r_mod: 8           # length: larger than hub, shorter than arcs for aesthetic
                                         value: 0
-                          # - obj:
-                          #     height: 14
-                          #     width: 14
-                          #     radius: 7
-                          #     align: CENTER
-                          #     border_width: 0
-                          #     pad_all: 0
-                          #     bg_color: 0xFFC107
+                          # Center cover
+                          - obj:
+                              height: 16          # diameter of the dot
+                              width: 16
+                              radius: 8           # makes it a circle
+                              align: CENTER
+                              y: 40                
+                              border_width: 0
+                              pad_all: 0
+                              bg_color: 0xFFD54F
+                          # Value label
                           - label:
                               id: power_text
                               text_font: montserrat_20
@@ -466,19 +609,23 @@ lvgl:
                               text: "--.- kW"
                               text_color: 0xFFD54F
 
+                    # ---------- Compressor frequency gauge (0..90 Hz) ----------
                     - label:
                         text: "Compressor Frequency"
-                        align: TOP_MID
+                        align: TOP_MID 
+                        x: 0
                         y: 196
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
+
                     - obj:
                         id: freq_gauge_box
                         align: TOP_MID
+                        x: 0
                         y: 218
                         width: 240
                         height: 160
-                        bg_color: 0x2B2F36
+                        bg_color: 0x30343B
                         border_width: 0
                         pad_all: 6
                         widgets:
@@ -490,6 +637,7 @@ lvgl:
                               bg_opa: TRANSP
                               align: CENTER
                               scales:
+                                # Background arcs for 0..90 Hz top half
                                 - range_from: 0
                                   range_to: 90
                                   angle_range: 180
@@ -498,17 +646,18 @@ lvgl:
                                     count: 0
                                   indicators:
                                     - arc:
-                                        color: 0x2468B3
-                                        r_mod: 12
-                                        width: 22
+                                        color: 0x1F5AA6     # deep blue
+                                        r_mod: 10
+                                        width: 26
                                         start_value: 0
                                         end_value: 45
                                     - arc:
-                                        color: 0xE0621A
-                                        r_mod: 12
-                                        width: 22
+                                        color: 0xD64C0C     # deep orange
+                                        r_mod: 10
+                                        width: 26
                                         start_value: 45
                                         end_value: 90
+                                # Needle scale (no ticks)
                                 - range_from: 0
                                   range_to: 90
                                   angle_range: 180
@@ -519,17 +668,20 @@ lvgl:
                                     - line:
                                         id: freq_needle
                                         width: 5
-                                        color: 0xFFC107
+                                        color: 0xFFD54F      # amber needle
                                         r_mod: 8
                                         value: 0
-                          # - obj:
-                          #     height: 14
-                          #     width: 14
-                          #     radius: 7
-                          #     align: CENTER
-                          #     border_width: 0
-                          #     pad_all: 0
-                          #     bg_color: 0xFFC107
+                          # Center cover
+                          - obj:
+                              height: 16          # diameter of the dot
+                              width: 16
+                              radius: 8           # makes it a circle
+                              align: CENTER       # center of the gauge
+                              y: 40 
+                              border_width: 0
+                              pad_all: 0
+                              bg_color: 0xFFD54F 
+                          # Value label
                           - label:
                               id: freq_text
                               text_font: montserrat_20
@@ -538,56 +690,73 @@ lvgl:
                               text: "-- Hz"
                               text_color: 0xFFD54F
 
+
               - obj:
                   id: temp_container
                   align: RIGHT_MID
                   x: 0
                   y: 0
                   width: 200
-                  height: 300
+                  height: 400
                   bg_color: 0x535966
                   border_width: 0
-                  pad_all: 15
+                  pad_all: 10
                   widgets:
                     - label:
-                        text: "Flow Temp"
-                        align: TOP_LEFT
-                        y: 10
+                        text: "DHW Tank Temp"
+                        align: TOP_MID
+                        y: 20
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
                     - label:
-                        id: flow_temp_value
+                        id: dhw_temp_value
                         text: "--°C"
-                        align: TOP_LEFT
-                        y: 35
+                        align: TOP_MID
+                        y: 45
                         text_font: montserrat_24
                         text_color: 0x33A1FF
                     - label:
-                        text: "Outdoor Temp"
-                        align: TOP_LEFT
-                        y: 90
+                        text: "Water Pump Speed"
+                        align: TOP_MID
+                        y: 80
+                        text_font: montserrat_16
+                        text_color: 0xFFFFFF  
+                    - label:
+                        id: water_pump_speed_value
+                        text: "--rpm"
+                        align: TOP_MID
+                        y: 115
+                        text_font: montserrat_24
+                        text_color: 0x33A1FF     
+                    - label:
+                        text: "Fan Speed"
+                        align: TOP_MID
+                        y: 150
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
                     - label:
-                        id: outdoor_temp_value
-                        text: "--°C"
-                        align: TOP_LEFT
-                        y: 115
+                        id: fan_speed_value
+                        text: "--rpm"
+                        align: TOP_MID
+                        y: 185
                         text_font: montserrat_24
                         text_color: 0xFF9933
                     - label:
-                        text: "Max Flow Temp"
-                        align: TOP_LEFT
-                        y: 170
+                        text: "DischargeTemp"
+                        align: TOP_MID
+                        y: 220
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
                     - label:
-                        id: set_max_flow_temp_value
+                        id: discharge_temp_value
                         text: "--°C"
-                        align: TOP_LEFT
-                        y: 195
+                        align: TOP_MID
+                        y: 255
                         text_font: montserrat_24
-                        text_color: 0x33A1FF
+                        text_color: 0x33A1FF         
+             
+
+
 
     - id: control_page
       widgets:
@@ -596,8 +765,9 @@ lvgl:
             height: 480
             bg_color: 0x464B55
             border_width: 0
-            pad_all: 10
+            pad_all: 0
             widgets:
+              # Title bar
               - obj:
                   align: TOP_MID
                   styles: header_footer
@@ -608,6 +778,7 @@ lvgl:
                         text_align: CENTER
                         text_color: 0xFFFFFF
 
+              # Max Flow dial (left)
               - obj:
                   id: max_dial_container
                   align: LEFT_MID
@@ -615,7 +786,7 @@ lvgl:
                   y: 0
                   width: 300
                   height: 300
-                  bg_color: 0x2B2F36
+                  bg_color: 0x2B2F36     # deeper slate for better contrast
                   border_width: 0
                   pad_all: 15
                   widgets:
@@ -625,10 +796,12 @@ lvgl:
                         y: 10
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
+
+                    # Dial arcs (top semicircle) + needle
                     - arc:
                         id: max_temp_dial
                         align: CENTER
-                        y: 12
+                        y: 15
                         width: 200
                         height: 200
                         min_value: 20
@@ -637,10 +810,13 @@ lvgl:
                         rotation: 0
                         start_angle: 135
                         end_angle: 45
-                        arc_color: 0x2468B3
+                        arc_color: 0x2468B3    # richer blue outline
                         arc_width: 14
                         adjustable: true
                         on_value:
+                          - logger.log:
+                              format: "Max dial moving: %.1f"
+                              args: [ 'x' ]
                           - lvgl.label.update:
                               id: max_temp_dial_label
                               text:
@@ -652,22 +828,17 @@ lvgl:
                               data:
                                 entity_id: number.set_max_flow_temp
                                 value: !lambda return x;
-                    # - obj:
-                    #     height: 14
-                    #     width: 14
-                    #     radius: 7
-                    #     align: CENTER
-                    #     border_width: 0
-                    #     pad_all: 0
-                    #     bg_color: 0xFFC107
+
+                    # Dial value label pushed down slightly
                     - label:
                         id: max_temp_dial_label
                         align: BOTTOM_MID
-                        y: 2
+                        y: 0
                         text: "45°C"
                         text_font: montserrat_32
-                        text_color: 0xFFD54F
+                        text_color: 0xFFD54F    # softer amber for hierarchy
 
+              # Min Flow dial (right)
               - obj:
                   id: min_dial_container
                   align: RIGHT_MID
@@ -685,10 +856,12 @@ lvgl:
                         y: 10
                         text_font: montserrat_16
                         text_color: 0xFFFFFF
+
+                    # Dial arcs + needle (same geometry)
                     - arc:
                         id: min_temp_dial
                         align: CENTER
-                        y: 12
+                        y: 15
                         width: 200
                         height: 200
                         min_value: 20
@@ -701,6 +874,9 @@ lvgl:
                         arc_width: 14
                         adjustable: true
                         on_value:
+                          - logger.log:
+                              format: "Min dial moving: %.1f"
+                              args: [ 'x' ]
                           - lvgl.label.update:
                               id: min_temp_dial_label
                               text:
@@ -712,47 +888,122 @@ lvgl:
                               data:
                                 entity_id: number.set_min_flow_temp
                                 value: !lambda return x;
-                    # - obj:
-                    #     height: 14
-                    #     width: 14
-                    #     radius: 7
-                    #     align: CENTER
-                    #     border_width: 0
-                    #     pad_all: 0
-                    #     bg_color: 0xFFC107
+
+                    # Dial value label pushed down slightly
                     - label:
                         id: min_temp_dial_label
                         align: BOTTOM_MID
-                        y: 2
+                        y: 0
                         text: "45°C"
                         text_font: montserrat_32
                         text_color: 0xFFD54F
 
-              
-              - switch:
+              # Weather comp switch
+              - switch: 
                   id: lv_sw_weather_comp
                   align: BOTTOM_MID
                   y: -60
-                  width: 96
-                  height: 44
-                  bg_color: 0x1F5AA6
-                  indicator:
-                    bg_color: 0x1F5AA6
-                  knob:
-                    bg_color: 0xFFFFFF
-                  checked:
-                    bg_color: 0x2E7D32
+                  width: 90
+                  height: 40
+                  bg_color: 2201331
+                  indicator: 
+                    bg_color: 9159498
+                    checked:
+                      bg_color: 9159498
+
                   on_click:
                     - if:
                         condition:
                           lambda: 'return id(weather_comp).state;'
                         then:
-                          - switch.turn_off: weather_comp
+                          - switch.turn_off: weather_comp  
                         else:
                           - switch.turn_on: weather_comp
+            
               - label:
                   text: "Weather Compensation"
                   align: BOTTOM_MID
-                  y: -20
+                  y: -40 
                   text_font: montserrat_16
                   text_color: 0xFFFFFF
+
+
+    - id: fixed_control_page
+      widgets:
+        - obj:
+            width: 800
+            height: 480
+            bg_color: 0x464B55
+            border_width: 0
+            pad_all: 0
+            widgets:
+              # Title bar
+              - obj:
+                  align: TOP_MID
+                  styles: header_footer
+                  widgets:
+                    - label:
+                        text: "Fixed Flow Rate"
+                        align: CENTER
+                        text_align: CENTER
+                        text_color: 0xFFFFFF
+
+              # Max Flow dial (left)
+              - obj:
+                  id: fixed_dial_container
+                  align: CENTER
+                  x: 0
+                  y: 0
+                  width: 300
+                  height: 300
+                  bg_color: 0x2B2F36     # deeper slate for better contrast
+                  border_width: 0
+                  pad_all: 15
+                  widgets:
+                    - label:
+                        text: "Set Fixed Flow Temp"
+                        align: TOP_MID
+                        y: 10
+                        text_font: montserrat_16
+                        text_color: 0xFFFFFF
+
+                    # Dial arcs (top semicircle) + needle
+                    - arc:
+                        id: fixed_temp_dial
+                        align: CENTER
+                        y: 15
+                        width: 200
+                        height: 200
+                        min_value: 20
+                        max_value: 65
+                        value: 45
+                        rotation: 0
+                        start_angle: 135
+                        end_angle: 45
+                        arc_color: 0x2468B3    # richer blue outline
+                        arc_width: 14
+                        adjustable: true
+                        on_value:
+                          - logger.log:
+                              format: "Fixed dial moving: %.1f"
+                              args: [ 'x' ]
+                          - lvgl.label.update:
+                              id: fixed_temp_dial_label
+                              text:
+                                format: "%.0f°C"
+                                args: [ 'x' ]
+                        on_release:
+                          - homeassistant.action:
+                              action: number.set_value
+                              data:
+                                entity_id: number.set_fixed_flow_temp
+                                value: !lambda return x;
+
+                    # Dial value label pushed down slightly
+                    - label:
+                        id: fixed_temp_dial_label
+                        align: BOTTOM_MID
+                        y: 0
+                        text: "45°C"
+                        text_font: montserrat_32
+                        text_color: 0xFFD54F    # softer amber for hierarchy
